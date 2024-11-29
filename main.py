@@ -89,7 +89,8 @@ def djikstra_algo(start, target, nodes, edges):
     nodes = [{"node": node, "weigth": float('inf'), "path": None} for node in nodes]
     has_visited = []
     
-    # Set the start node weight to 0
+    # sætter start nodesne til 0 for den ikke medregner den i vægten, det er i bund og grund lidt ubrugeligt men hvis vi vil se 
+    # vægten fra start til start ordenligt så det bedste at sætte det til 0
     start_node = get_node(nodes, start)
     if start_node:
         start_node["weigth"] = 0
@@ -103,15 +104,18 @@ def djikstra_algo(start, target, nodes, edges):
 
         has_visited.append(current_node) # Tilføjer noden til listen over besøgte noder
 
-        # Hvis vi så når til target så har vi klaret det og breaker ud af loopet
+        # Hvis vi så når til target så har vi klaret det og breaker ud af loopet    
+        # Jeg er lidt usikker på om den vælger den mest optimiseret rute eller bare den første rute den kan få, men stadig med alle dens tjeks om længde osv.
+
+
         if current_node["node"] == target:
+            print("breaking")
             break
 
         # Henter naboer til noden og looper gennem alle edges til naboen
         neighbours = get_node_neighbours(current_node["node"], edges)
 
         for neighbour in neighbours:
-
             # Henter nabo noden
 
             neighbour_node = get_node(nodes, neighbour)
@@ -130,7 +134,9 @@ def djikstra_algo(start, target, nodes, edges):
 
     print(nodes)
     
-    """path = []
+
+
+    path = []
     node = get_node(nodes + has_visited, target)
     print(node)
     while node and node["node"] != start:
@@ -142,7 +148,7 @@ def djikstra_algo(start, target, nodes, edges):
     path.reverse()
 
     print("Shortest path:", path)
-    print("Target weight:", get_node(nodes + has_visited, target)["weigth"])"""
+    print("Target weight:", get_node(nodes + has_visited, target)["weigth"])
 
 
         
@@ -176,5 +182,5 @@ nx.draw(P, pos, with_labels=True, node_color="skyblue", node_size=700, font_size
 
 nx.draw_networkx_edge_labels(P, pos, edge_labels=weights, label_pos=0.5, font_size=8)
 
-#plt.show()
+plt.show()
  
