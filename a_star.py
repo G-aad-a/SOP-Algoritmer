@@ -56,15 +56,12 @@ nodes = generate_nodes(20)
 edges = generate_edges(nodes, 30)
 weights = generate_weights(edges)
 
-def sort(l):
-    l.sort(key = lambda node: node["weigth"])
-
-
 def get_edge_weight(edge):
     if edge in weights:
         return weights[edge]
     elif (edge[1], edge[0]) in weights:
         return weights[(edge[1], edge[0])]
+
 
 def get_node(nodes, node_name):
     for node in nodes:
@@ -88,30 +85,35 @@ def get_node_neighbours(node, edges):
 
 
 # Herustic delen til A* algoritmen, det er lidt dårligt brugt i dette tilfælde da grafen vi bruger ikke har position men det er -
-# vores netværks visualisering der sætter noderne tilfældigt så vi tager bare og laver herustik efter tallet efter bogstavet
+# vores netværks visualisering der sætter noderne tilfældigt så vi tager bare og laver herustik efter tallet efter bogstavet for at demonstrere det
 def heuristic(node, target):
     node_index = int(node[1:])  # tager tallet fra noden, f.eks. "A1" -> 1
-    target_index = int(target[1:])  # samme her
+    target_index = int(target[1:])  # -||-
     return abs(node_index - target_index) # returnere den absolutte værdi af forskellen mellem de to tal
 
 
 def a_star_algo(start, target, nodes, edges):
     # Denne algoritme har vi brugt en kø (PriorityQueue) til at holde styr på hvilke noder vi skal besøge næste gang
-    # Det medfører at tids kompleksiteten er O(v+e log v) i stedet for O(v^2) som vi ville have hvis vi brugte en simpel list som vi feks gjorde i djikstra
+    # Det medfører at tids kompleksiteten er O(e+v log v) i stedet for O(v^2) som vi ville have hvis vi brugte en simpel list som vi feks gjorde i djikstra
 
     open_set = PriorityQueue()
-    open_set.put((0, start))  # Køen bliver (f_score, node)
+    open_set.put((0, start))  # Køen bliver (h_score, node)
 
     came_from = {} # Holder styr på hvilken node vi kom fra
     
     g_score = {node: float('inf') for node in nodes}
     g_score[start] = 0
-    
-    f_score = {node: float('inf') for node in nodes}
-    f_score[start] = heuristic(start, target)
+
+    h_score = {node: float('inf') for node in nodes}
+    h_score[start] = heuristic(start, target)
+    closed_set = set()
 
     while not open_set.empty():
         _, current = open_set.get()
+
+        if current in closed_set:
+            continue
+        closed_set.add(current)
 
         if current == target:
             path = []
@@ -122,49 +124,34 @@ def a_star_algo(start, target, nodes, edges):
             path.reverse()
             print("Shortest path:", path)
             print("Target weight:", g_score[target])
-            return
+
+            return path, g_score[target]
 
         neighbors = get_node_neighbours(current, edges)
         for neighbor in neighbors:
-            tentative_g_score = g_score[current] + get_edge_weight((current, neighbor))
-            if tentative_g_score < g_score[neighbor]:
+            temp_g_score = g_score[current] + get_edge_weight((current, neighbor))
+            
+            if temp_g_score < g_score[neighbor]:    
                 came_from[neighbor] = current
-                g_score[neighbor] = tentative_g_score
-                f_score[neighbor] = tentative_g_score + heuristic(neighbor, target)
-                open_set.put((f_score[neighbor], neighbor))
-
-    print("No path found")
-
-        
-        
+                g_score[neighbor] = temp_g_score
+                h_score[neighbor] = temp_g_score + heuristic(neighbor, target)
+                open_set.put((h_score[neighbor], neighbor))
     
-
-
-
-
-
-
-
-    
-
-
-
-
-
-a_star_algo("A1", "T20", nodes, edges)
+    return None, float('inf')
 
 
 
 P.add_nodes_from(nodes)
 P.add_edges_from(edges)
 
-#print(P.nodes())
-#print(P.edges())
+pos = nx.spring_layout(P)
+path, cost = a_star_algo("A1", "T20", nodes, edges)
+if path:
+    path_edges = [(path[i], path[i+1]) for i in range(len(path) - 1)]
+    edge_colors = ["red" if edge in path_edges or (edge[1], edge[0]) in path_edges else "black" for edge in P.edges]
+    nx.draw(P, pos, with_labels=True, node_color="skyblue", node_size=700, font_size=10, edge_color=edge_colors)
+    nx.draw_networkx_edge_labels(P, pos, edge_labels=weights, label_pos=0.5, font_size=8)
+    plt.show()
 
-pos = nx.spring_layout(P)  # Layout for nodes
-nx.draw(P, pos, with_labels=True, node_color="skyblue", node_size=700, font_size=10)
-
-nx.draw_networkx_edge_labels(P, pos, edge_labels=weights, label_pos=0.5, font_size=8)
-
-plt.show()
- 
+else:
+    print("No path found")
