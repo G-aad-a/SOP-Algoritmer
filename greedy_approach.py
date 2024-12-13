@@ -40,13 +40,14 @@ def greedy_tsp(nodes, weights):
         next_node = None
         min_cost = float('inf')
         for neighbor in nodes:
+
             # Tjek om kanten findes i grafen, og om den er mindre end den nuværende
             # vi gør det 2 gange for at være sikker på at vi får den rigtige vægt, da den kan ligge som -
             # (w, v) eller (v, w)
             
             if not visited[neighbor] and (current_node, neighbor) in weights:
                 cost = weights[(current_node, neighbor)]
-                if cost < min_cost:
+                if cost < min_cost: 
                     next_node = neighbor
                     min_cost = cost
 
